@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seraphina 的哲思日常</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        #root { width: 100vw; min-height: 100vh; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel">
+        const { useState } = React;
+        const App = () => {
+          const [view, setView] = useState('weekly');
+          const [paragraphs, setParagraphs] = useState({
+            reflection: { title: '本週反思/心得', content: '', done: false },
+            recommendation: { title: '推薦/實踐小物', content: '', done: false },
+            learning: { title: '最近在學/在想', content: '', done: false }
+          });
+          const [blog, setBlog] = useState({ title: '', content: '', words: 0 });
+          const [copied, setCopied] = useState('');
+
+          const updatePara = (key, val) => {
+            setParagraphs(p => ({...p, [key]: {...p[key], content: val, done: val.trim().length > 0}}));
+          };
+
+          const toggleDone = (key) => {
+            setParagraphs(p => ({...p, [key]: {...p[key], done: !p[key].done}}));
+          };
+
+          const getProgress = () => {
+            const done = Object.values(paragraphs).filter(p => p.done).length;
+            return (done / 3) * 100;
+          };
+
+          const copyNewsletter = () => {
+            const txt = Object.entries(paragraphs).map(([k,p]) => `${p.title}\n\n${p.content}`).join('\n\n---\n\n');
+            navigator.clipboard.writeText(txt).then(() => {
+              setCopied('newsletter');
+              setTimeout(() => setCopied(''), 2000);
+            });
+          };
+
+          const copyBlog = () => {
+            const txt = `${blog.title}\n\n${blog.content}`;
+            navigator.clipboard.writeText(txt).then(() => {
+              setCopied('blog');
+              setTimeout(() => setCopied(''), 2000);
+            });
+          };
+
+          const updateBlog = (content) => {
+            const words = content.trim().split(/\s+/).filter(w => w).length;
+            setBlog(prev => ({ ...prev, content, words }));
+          };
+
+          return (
+            <div style={{minHeight:'100vh',background:'linear-gradient(135deg,#f8f7ff 0%,#fff5f7 50%,#f0f9ff 100%)',fontFamily:"'Noto Sans TC',sans-serif",color:'#2d2438',position:'relative'}}>
+              <div style={{position:'fixed',top:'10%',left:'50%',transform:'translateX(-50%)',width:'600px',height:'600px',background:'radial-gradient(circle,rgba(186,148,255,0.08) 0%,rgba(186,148,255,0.02) 40%,transparent 70%)',borderRadius:'50%',filter:'blur(60px)',pointerEvents:'none',zIndex:0}}/>
+              <div style={{position:'fixed',bottom:'20%',right:'10%',width:'400px',height:'400px',background:'radial-gradient(circle,rgba(138,180,248,0.06) 0%,rgba(138,180,248,0.01) 40%,transparent 70%)',borderRadius:'50%',filter:'blur(50px)',pointerEvents:'none',zIndex:0}}/>
+              
+              <div style={{background:'rgba(255,255,255,0.6)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(186,148,255,0.1)',padding:'20px 60px',position:'sticky',top:0,zIndex:100}}>
+                <div style={{maxWidth:'1000px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:'20px'}}>
+                    <div style={{width:'60px',height:'60px',background:'linear-gradient(135deg,#ba94ff 0%,#8ab4f8 100%)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',position:'relative',boxShadow:'0 8px 32px rgba(186,148,255,0.4)'}}>
+                      <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',width:'80%',height:'80%',background:'rgba(255,255,255,0.2)',borderRadius:'50%',filter:'blur(8px)'}}/>
+                      <span style={{fontSize:'28px',position:'relative',zIndex:1}}>✨</span>
+                    </div>
+                    <div>
+                      <div style={{fontSize:'13px',color:'#8a7aa0',letterSpacing:'0.1em'}}>Seraphina 的</div>
+                      <div style={{fontSize:'24px',fontWeight:700,background:'linear-gradient(135deg,#ba94ff 0%,#8ab4f8 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',letterSpacing:'0.03em'}}>哲思日常</div>
+                    </div>
+                  </div>
+                  <div style={{display:'flex',gap:'32px'}}>
+                    <button onClick={()=>setView('weekly')} style={{padding:'10px 0',background:'transparent',border:'none',borderBottom:view==='weekly'?'2px solid #ba94ff':'2px solid transparent',color:view==='weekly'?'#ba94ff':'#8a7aa0',fontSize:'15px',fontWeight:view==='weekly'?600:400,cursor:'pointer'}}>本週任務</button>
+                    <button onClick={()=>setView('blog')} style={{padding:'10px 0',background:'transparent',border:'none',borderBottom:view==='blog'?'2px solid #8ab4f8':'2px solid transparent',color:view==='blog'?'#8ab4f8':'#8a7aa0',fontSize:'15px',fontWeight:view==='blog'?600:400,cursor:'pointer'}}>部落格</button>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{padding:'60px',maxWidth:'1000px',margin:'0 auto',position:'relative',zIndex:1}}>
+                {view === 'weekly' ? (
+                  <div>
+                    <h1 style={{textAlign:'center',fontSize:'48px',marginBottom:'20px',background:'linear-gradient(135deg,#2d2438 0%,#5a4b6f 50%,#2d2438 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',fontWeight:700}}>本週寫作任務</h1>
+                    <p style={{textAlign:'center',color:'#8a7aa0',marginBottom:'60px'}}>每週二晚餐時光</p>
+                    
+                    <div style={{background:'rgba(255,255,255,0.6)',backdropFilter:'blur(20px)',borderRadius:'24px',padding:'32px',marginBottom:'40px',border:'1px solid rgba(186,148,255,0.1)'}}>
+                      <div style={{display:'flex',justifyContent:'space-between',marginBottom:'16px'}}>
+                        <span>整體進度</span>
+                        <span style={{fontSize:'24px',fontWeight:700,background:'linear-gradient(135deg,#ba94ff 0%,#8ab4f8 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>{Math.round(getProgress())}%</span>
+                      </div>
+                      <div style={{width:'100%',height:'10px',background:'rgba(186,148,255,0.1)',borderRadius:'10px',overflow:'hidden'}}>
+                        <div style={{width:`${getProgress()}%`,height:'100%',background:'linear-gradient(90deg,#ba94ff 0%,#8ab4f8 100%)',borderRadius:'10px',transition:'width 0.6s ease'}}/>
+                      </div>
+                    </div>
+
+                    {Object.entries(paragraphs).map(([key,para])=>(
+                      <div key={key} style={{background:para.done?'rgba(186,148,255,0.06)':'rgba(255,255,255,0.6)',backdropFilter:'blur(20px)',border:`2px solid ${para.done?'rgba(186,148,255,0.3)':'rgba(186,148,255,0.15)'}`,borderRadius:'24px',padding:'32px',marginBottom:'24px',position:'relative'}}>
+                        {para.done && <div style={{position:'absolute',top:'-50%',right:'-20%',width:'300px',height:'300px',background:'radial-gradient(circle,rgba(186,148,255,0.15) 0%,transparent 70%)',borderRadius:'50%',filter:'blur(40px)',pointerEvents:'none'}}/>}
+                        <div style={{display:'flex',justifyContent:'space-between',marginBottom:'20px',position:'relative',zIndex:1}}>
+                          <h3 style={{fontSize:'20px',fontWeight:700,background:'linear-gradient(135deg,#2d2438 0%,#5a4b6f 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',margin:0}}>{para.title}</h3>
+                          <button onClick={()=>toggleDone(key)} style={{padding:'8px 20px',background:para.done?'linear-gradient(135deg,#ba94ff 0%,#8ab4f8 100%)':'rgba(255,255,255,0.6)',border:para.done?'none':'2px solid rgba(186,148,255,0.2)',borderRadius:'20px',color:para.done?'white':'#8a7aa0',fontSize:'13px',cursor:'pointer'}}>{para.done?'✓ 完成':'待完成'}</button>
+                        </div>
+                        <textarea value={para.content} onChange={(e)=>updatePara(key,e.target.value)} placeholder="在此書寫..." style={{width:'100%',minHeight:'150px',background:'rgba(255,255,255,0.4)',border:'2px solid rgba(186,148,255,0.1)',borderRadius:'16px',padding:'16px',fontSize:'15px',lineHeight:1.8,resize:'vertical',outline:'none',position:'relative',zIndex:1}}/>
+                        <div style={{marginTop:'12px',fontSize:'13px',color:'#8a7aa0',position:'relative',zIndex:1}}>{para.content.length} 字</div>
+                      </div>
+                    ))}
+
+                    <div style={{background:'rgba(138,180,248,0.05)',border:'2px solid rgba(138,180,248,0.15)',borderRadius:'24px',padding:'28px',marginBottom:'40px'}}>
+                      <h3 style={{fontSize:'16px',fontWeight:600,color:'#5a4b6f',marginBottom:'16px'}}>✨ 本週提示</h3>
+                      <ul style={{listStyle:'none',padding:0,fontSize:'14px',lineHeight:2,color:'#4a3a5f'}}>
+                        <li style={{paddingLeft:'20px',position:'relative'}}><span style={{position:'absolute',left:0,color:'#8ab4f8'}}>◆</span>電子報可引用 /newsletter-para AI 協助</li>
+                        <li style={{paddingLeft:'20px',position:'relative'}}><span style={{position:'absolute',left:0,color:'#8ab4f8'}}>◆</span>部落格文章可從本週反思延伸</li>
+                        <li style={{paddingLeft:'20px',position:'relative'}}><span style={{position:'absolute',left:0,color:'#8ab4f8'}}>◆</span>每週固定發，比每週寫得完更重要</li>
+                      </ul>
+                    </div>
+
+                    <div style={{display:'flex',gap:'16px',justifyContent:'center'}}>
+                      <button style={{padding:'16px 40px',background:'rgba(255,255,255,0.6)',border:'2px solid rgba(186,148,255,0.2)',borderRadius:'30px',color:'#6a5a7f',fontSize:'15px',cursor:'pointer'}}>💾 儲存草稿</button>
+                      <button onClick={copyNewsletter} style={{padding:'16px 40px',background:copied==='newsletter'?'linear-gradient(135deg,#4ade80 0%,#22c55e 100%)':'linear-gradient(135deg,#ba94ff 0%,#8ab4f8 100%)',border:'none',borderRadius:'30px',color:'white',fontSize:'15px',fontWeight:600,cursor:'pointer'}}>{copied==='newsletter'?'✓ 已複製':'📋 複製內容'}</button>
+                    </div>
+                    {copied==='newsletter' && <div style={{marginTop:'24px',padding:'20px',background:'rgba(74,222,128,0.1)',border:'2px solid rgba(74,222,128,0.3)',borderRadius:'16px',color:'#16a34a',textAlign:'center'}}>✓ 內容已複製，可前往方格子貼上發布</div>}
+                  </div>
+                ):(
+                  <div>
+                    <h1 style={{textAlign:'center',fontSize:'48px',marginBottom:'20px',background:'linear-gradient(135deg,#2d2438 0%,#5a4b6f 50%,#2d2438 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',fontWeight:700}}>部落格文章</h1>
+                    <p style={{textAlign:'center',color:'#8a7aa0',marginBottom:'60px'}}>一週一篇 · 方格子 vocus.cc</p>
+                    <input type="text" value={blog.title} onChange={(e)=>setBlog(p=>({...p,title:e.target.value}))} placeholder="輸入標題..." style={{width:'100%',background:'rgba(255,255,255,0.6)',border:'2px solid rgba(186,148,255,0.15)',borderRadius:'20px',padding:'20px 28px',fontSize:'24px',fontWeight:700,marginBottom:'24px',outline:'none'}}/>
+                    <textarea value={blog.content} onChange={(e)=>updateBlog(e.target.value)} placeholder="開始書寫..." style={{width:'100%',minHeight:'400px',background:'rgba(255,255,255,0.6)',border:'2px solid rgba(186,148,255,0.15)',borderRadius:'20px',padding:'28px',fontSize:'16px',lineHeight:2,resize:'vertical',outline:'none',marginBottom:'24px'}}/>
+                    <div style={{textAlign:'center',marginBottom:'32px',color:'#8a7aa0'}}>字數：{blog.words} / 500-800</div>
+                    <div style={{display:'flex',gap:'16px',justifyContent:'center'}}>
+                      <button style={{padding:'16px 40px',background:'rgba(255,255,255,0.6)',border:'2px solid rgba(186,148,255,0.2)',borderRadius:'30px',color:'#6a5a7f',fontSize:'15px',cursor:'pointer'}}>💾 儲存草稿</button>
+                      <button onClick={copyBlog} style={{padding:'16px 40px',background:copied==='blog'?'linear-gradient(135deg,#4ade80 0%,#22c55e 100%)':'linear-gradient(135deg,#ba94ff 0%,#8ab4f8 100%)',border:'none',borderRadius:'30px',color:'white',fontSize:'15px',fontWeight:600,cursor:'pointer'}}>{copied==='blog'?'✓ 已複製':'📋 複製內容'}</button>
+                    </div>
+                    {copied==='blog' && <div style={{marginTop:'24px',padding:'20px',background:'rgba(74,222,128,0.1)',border:'2px solid rgba(74,222,128,0.3)',borderRadius:'16px',color:'#16a34a',textAlign:'center'}}>✓ 內容已複製，可前往方格子貼上發布</div>}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        };
+        ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+    </script>
+</body>
+</html>
