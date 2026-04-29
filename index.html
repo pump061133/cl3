@@ -17,7 +17,7 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script type="text/babel">
-        const { useState, useEffect, useCallback } = React;
+        const { useState, useEffect } = React;
 
         const TODAY = new Date().toISOString().slice(0, 10);
 
@@ -35,6 +35,51 @@
           }
           return dates.sort((a, b) => b.localeCompare(a));
         };
+
+        const ARTICLES = [
+          {
+            id: 1,
+            date: "2026-04-24",
+            title: "同一個家，兩種個性，我才發現沒有一種教養方式適合所有孩子",
+            content: "有時候我會看著我的兩個孩子，心裡有一種很深的感覺——\n他們明明在同一個家庭長大，卻像是來自兩個完全不同的世界。\n\n一個比較自律，做事情有自己的節奏，也會要求自己做到好；另一個比較隨性，情緒比較直接，有時候很有熱情，但也容易分心。\n\n以前的我，會不自覺地用同一種標準去看他們。\n\n我會希望他們都可以更有條理、更有效率，甚至會在心裡比較，覺得「如果可以像另一個那樣就好了」。\n\n但慢慢地我發現，這樣的期待，其實讓我自己很累，也讓孩子很辛苦。\n\n因為我其實是在用「同一把尺」，去衡量兩個完全不同的人。\n\n有一次我看著其中一個孩子在做自己喜歡的事情，那種專注、投入，其實是很真實的。只是那個樣子，剛好不符合我心裡「應該要先把正事做好」的順序。\n\n那一刻我突然有一點鬆動。\n\n我開始想，也許不是他不夠好，而是他的節奏，跟我習慣的不一樣。\n\n我們很容易把「自己認為好的方式」，當成唯一正確的方式。\n\n但當我真的靜下來看，我才發現，每個孩子本來就有自己的氣質，有自己的學習方式，也有自己的步調。\n\n莊子曾經提到萬物各有其性，各自有適合自己的存在方式。以前讀到這樣的想法，會覺得很開闊，但放進教養裡，其實是一種很大的挑戰。\n\n因為那代表，我要放下一種「應該」。\n\n我沒有完全做到。\n\n還是會在某些時候著急，還是會忍不住想把他們拉回我熟悉的軌道。\n\n但不一樣的是，我開始會提醒自己一件事——\n我是在幫助他，還是只是希望他變成我比較安心的樣子？\n\n慢慢地，我開始嘗試用不同的方式看待他們。\n\n對一個孩子，我學著多給一點空間，讓他用自己的方式去完成事情；對另一個孩子，我學著少一點要求，讓他在過程中找到自己的節奏，而不是只看結果。\n\n我才發現，教養不是找到一個「最好的方法」，\n而是願意為不同的孩子，調整不同的理解。\n\n有時候我們以為公平，是用一樣的方式對待每個孩子。\n\n但也許更深的公平，是看見他們的不一樣，然後給出不同的陪伴。\n\n我還在學，怎麼在愛裡不比較、不急著修正。\n\n學著相信，他們各自會長成適合自己的樣子。\n\n同一個家，兩種個性。\n\n而我，也在這之中，慢慢學會放下「只有一種對的方式」。",
+          },
+          {
+            id: 2,
+            date: "2026-04-27",
+            title: "我以為承擔是愛，後來才發現那也是一種逃避",
+            content: "最近連著看了兩部韓劇——《比天堂還美麗》和《哈囉掰掰，我是鬼媽媽》。\n\n兩部戲都在說死後那些來不及說出口的遺憾，看著看著，眼淚就止不住了。\n\n《比天堂還美麗》後段，有一個畫面讓我看了很久。\n\n女主角海淑內心深處藏著一個陰影，那個陰影是她為了承受失去孩子的劇痛，選擇封印、選擇遺忘而留下的傷。直到有一天，那個被壓下去的東西再也壓不住，才一次把一切都掀開。\n\n那一刻我忽然覺得，這不只是她的故事。\n\n我們每個人心裡，都有一些被壓著的東西。\n\n只是我們平常不去看它，讓它安靜地待在那裡，以為這樣就沒事了。\n\n看完戲之後，我坐在那裡想了很久。\n\n我想起了自己這些年扮演的角色——\n\n女兒的時候，我習慣當父母的那個「沒問題的人」。\n\n爸爸中風那一年，媽媽一個人照顧不來。\n\n那一個月，我每天在三個地方之間移動——醫院、爸媽家、還有自己的家。\n\n白天照顧爸爸，回到家還有孩子要接、晚飯要煮、老公要顧。\n\n我沒有停下來問自己累不累，因為沒有時間問，也覺得不能問。\n\n那時候我以為，這就是做女兒應該做的事。\n\n當了媽媽之後也是一樣，家裡的大小事、孩子的情緒、老公的生活，我幾乎都接著。\n\n我以為這是愛，以為這叫負責任。\n\n但有一天我問自己：這樣做的時候，我快樂嗎？\n\n說實話，有時候是累的。\n\n不是怨誰，只是那種累是很深的，深到有時候自己都沒有感覺到。\n\n後來看了一些書，才慢慢理解一件事——每個人都有屬於自己的人生課題，那些課題不是我能替他們承擔的，也不該是我去替他們解決的。\n\n我一直以為，承擔是愛。\n\n但其實，有時候承擔是一種逃避。\n\n逃避去看自己，逃避去問：「我自己需要什麼？」\n\n戲劇裡那些「早知道」，是死後才說出口的遺憾。\n\n但我現在還在，還有機會練習。\n\n莊子說：「安時而處順，哀樂不能入也。」\n\n以前覺得這句話是在說放下悲傷。\n\n現在我覺得，它也在說另一件事——安住在自己該在的位置，不去過度承擔不屬於自己的重量。\n\n我還在學。\n\n學著在關係裡，不再第一個舉手說「我來」。\n\n學著先問自己：「我現在有沒有餘裕？」\n\n學著相信，我照顧好自己，不是自私，而是讓愛可以走得更遠。\n\n那些被壓著的東西，也許不需要全部挖出來，但至少，可以開始承認它在那裡。\n\n這是我這幾年，慢慢學到的事。",
+          },
+          {
+            id: 3,
+            date: "2026-04-30",
+            title: "你不是只有一種可能性",
+            content: "有一次，有人問我在做什麼。\n\n我愣了一下。\n\n「媽媽。」我說。\n\n對方笑了笑，把話題帶走了。我卻有一點點留在那個問題裡出不來。\n\n我是媽媽，但我也在讀書。\n我是家庭主婦，但我有自己在想的事。\n我照顧孩子，但我也想知道自己還可以是什麼樣子。\n\n那個愣住的瞬間，讓我開始想一件事——\n我什麼時候開始，把自己縮成了一個答案？\n\n量子力學有一個概念，讓我很著迷。\n\n一個粒子，在還沒有被觀察的時候，同時存在於很多種可能性裡。不是這裡，也不是那裡，而是「同時都有可能」的狀態。只有在被觀察的那一刻，它才會選擇一個位置，成為確定的樣子。\n\n我不是物理學家，我也說不清楚那些方程式。\n\n但那個意象讓我停了很久。\n\n因為我想到的是人。\n\n在別人看我之前，在我自己定義自己之前，我其實也是那樣的狀態——\n不只是一個角色，不只是一種可能性，而是很多個「也許」同時存在著。\n\n老子說：「為學日益，為道日損。」\n\n意思是，學東西，是不斷增加；但靠近自己的本質，反而是不斷減少——減少那些貼在自己身上的標籤，減少那些「我應該是什麼樣子」的設定。\n\n我以前沒有真的懂這句話。\n\n現在我開始有一點感覺了。\n\n不是說什麼都不做，而是說——\n先別那麼快把自己釘死在一個定義裡。\n\n我今年開始備考一張證照。\n\n身邊有人覺得奇怪：「妳都這個年紀了，還在考試？」\n\n我沒有解釋太多。\n\n但我心裡有一個很安靜的聲音說：\n如果我現在還願意學，那就代表我還沒有被某一個版本的自己鎖住。\n\n那種感覺，比考過或考不過更重要。\n\n我想，每一個人都有那一團「選擇的雲」。\n\n你以為自己只能是現在這個樣子，但那只是因為你還沒有走進其他的可能性去看看。\n\n而走進去的方式，往往不是想通了，\n而是先動了一步。\n\n你走了這一步，那個可能性就被你「觀察」到了，就從雲裡落下來，變成真實的。\n\n我不知道我最後會是什麼樣子。\n\n現在，我是媽媽，是在讀書的人，是在試著把想法寫下來的人。\n\n這幾個，同時都是我。\n\n我不急著選一個。\n\n因為我還在路上。\n\n而路，還很長。",
+          },
+          {
+            id: 4,
+            date: "2026-05-11",
+            title: "我不是在生氣，其實我是在害怕失控",
+            content: "那天其實只是很平常的一個晚上。孩子在寫功課，我在旁邊忙著自己的事，事情沒有什麼大問題，但就是不太順。我一邊提醒，一邊忍著情緒，語氣卻還是慢慢變得不耐煩，最後還是忍不住提高了聲音。\n\n話說出口的那一刻，我其實就知道了，我不是在教他，我只是情緒上來了。\n\n後來安靜下來，心裡有一點不舒服。不是因為孩子做錯了什麼，而是我很清楚，那不是我想成為的樣子。那種感覺有點複雜，有懊惱，也有一點無力。\n\n我開始試著問自己，我剛剛到底在氣什麼？是孩子沒有照我說的做，還是事情沒有在我的掌控裡？再往裡面看一點，我才慢慢發現，其實我是在害怕。害怕事情亂掉，害怕孩子跟不上，甚至有一點，是在害怕自己不夠好。\n\n這些情緒平常不太會被看見，但它們一直都在，只是換了一種方式跑出來。\n\n我以前會覺得，教養就是要教孩子、修正孩子。但慢慢地我開始理解，很多時候，孩子只是剛好讓我看見我自己，看見我的急、我的控制，還有那些我不太願意承認的不安。\n\n老子說：「知人者智，自知者明。」這句話以前覺得很有道理，現在才發現，其實也有點難，因為看見自己，往往不是一件舒服的事。\n\n我開始練習一件很小的事。當情緒上來的時候，不急著把話說出去，而是先停一下，問問自己：我現在，是不是在害怕什麼？\n\n我沒有每次都做得到，還是會有失控的時候，還是會說出讓自己後悔的話。但不一樣的是，我開始願意回頭看，也願意承認，我不是一個完美的媽媽，但我想當一個願意誠實面對自己的媽媽。\n\n慢慢地我發現，當我比較能理解自己，我也比較能放過孩子。\n\n也許我們都一樣，不是做得很好才值得被愛，而是在那些混亂、不安、甚至做不好的時候，還願意停下來看看自己。那本身，就是一種很安靜的勇敢。",
+          },
+          {
+            id: 5,
+            date: "2026-05-18",
+            title: "我以為不說是體貼，後來才知道那是委屈",
+            content: "結婚這些年，我其實很少把真正的想法說出來。\n\n很多時候，我會先想：「算了，不要講好了。」\n覺得講了可能會讓氣氛變不好，或者對方不一定能理解，最後就選擇自己消化。\n\n表面上看起來很平靜，但心裡其實不是沒有感受，只是習慣壓下來。\n\n久了之後，我開始發現一件事——\n我好像越來越容易不開心，但又說不上來到底怎麼了。\n\n有時候只是很小的事情，對方一句話、某個反應，我心裡就會卡住，可是當下還是會告訴自己：「沒關係，不要那麼在意。」\n\n但那些「沒關係」，其實都沒有真的過去。\n\n後來有一次，我終於忍不住說了出來。\n\n不是情緒爆發的那種說，而是有點不安、有點猶豫，但還是試著把心裡真正的感受講出來。\n\n那一刻其實很不習慣，也有點害怕。\n我不確定對方會不會理解，也不確定會不會讓關係變得更緊張。\n\n但說完之後，我反而鬆了一口氣。\n\n我才慢慢意識到一件事，\n我以前以為的不說，是體貼，是為了讓關係更和諧。\n\n但其實，那裡面有很多是委屈，是壓抑，甚至是一種對衝突的害怕。\n\n莊子有一句話我很喜歡：「真者，精誠之至也。」\n真正的真，不只是對自己誠實，也包含在關係裡，願意讓對方看見真實的自己。\n\n以前的我，比較習慣把自己藏好，\n覺得這樣比較安全，也比較不容易受傷。\n\n但慢慢地我發現，如果一段關係裡，總是只有一種「比較好相處的我」，那其實也代表，有一部分真正的我，從來沒有被看見。\n\n開始練習說出口之後，我並沒有變得很厲害。\n\n還是會卡住，還是會在開口前想很久，甚至有時候說得不夠好。\n\n但至少，我沒有再完全把自己關起來。\n\n我也慢慢理解，\n好的溝通，不是把話說得多漂亮，而是願意用一種不攻擊、也不壓抑的方式，把真實的感受放進關係裡。\n\n那需要一點勇氣，也需要一點練習。\n\n現在的我，還在學。\n\n學著在關係裡，不只是理解對方，也不忽略自己。\n\n學著用溫柔的方式，說出真實的話。",
+          },
+          {
+            id: 6,
+            date: "2026-05-25",
+            title: "我想放手，但也害怕——關於手機與界線的練習",
+            content: "最近兒子常常跟我提起，他想要多一點手機的使用權，希望可以自己決定，而不是一直被限制。\n\n我沒有馬上答應，只是問他：「你覺得自己真的做得到自律嗎？」\n\n問完之後，我其實很清楚，這不只是他的問題，也是我的不安。\n\n後來我找了一個時間，和他還有妹妹一起看了換個爸媽過幾天 第三季。\n\n節目裡的孩子，有的想戒手機卻做不到，有的想要自由，卻在關係裡慢慢變得疏離。我們一邊看，一邊討論，他們也看見那些孩子在人際互動上的退縮，以及情緒調節上的困難。\n\n那一刻，我其實是害怕的。不是手機本身，而是當一個人習慣透過螢幕與世界連結時，那些原本應該在關係裡慢慢學會的對話與理解，甚至連情緒的表達，會不會也一點一點變得生疏。\n\n我才開始誠實地看見自己的心。\n\n我想放手，是真的；但我也會害怕，是真的。\n\n害怕他們還沒準備好，就過早被資訊拉走；害怕他們用手機填滿情緒，卻沒有學會怎麼面對自己；也害怕那種看起來自由的選擇，其實變成另一種依賴。\n\n以前我會以為，放手就是信任。\n\n但現在我慢慢理解，信任並不等於沒有界線。\n\n老子說「知止」，有時候不是不放，而是知道該放到哪裡。\n\n所以這一次，我沒有完全答應，也沒有完全拒絕。\n\n我跟他說，可以慢慢增加使用的空間，但需要一起訂規則，也需要一起觀察自己的狀態。\n\n這不是控制，而是一種過渡。\n\n我也在學著調整自己。\n\n不是一直緊盯，而是學著退一步；不是完全不管，而是在旁邊看。\n\n還是會擔心，但我不再急著做出決定。\n\n因為我開始知道，教養不是一次正確的選擇，而是在過程裡慢慢修正。\n\n也許放手，不是突然做到的，而是一點一點鬆開。\n\n而我現在在做的，是一邊學著信任孩子，一邊誠實地面對自己的害怕。",
+          },
+          {
+            id: 8,
+            date: "2026-06-08",
+            title: "網路資訊戰與孩子的錨",
+            content: "網路空間，已成為另一種戰場。\n\n透過假新聞、深偽技術、輿論操縱，影響社會信任與國家決策。社群媒體不再只是交流工具，儼然已成為戰略性武器——操控情緒、擴大對立、削弱凝聚力。\n\n而更讓我擔心的，是孩子們。\n\n當一個青少年每天花十幾個小時活在螢幕裡，他的世界觀，幾乎完全由演算法決定。他以為那是真實，但那只是平台想讓他看見的那一部分。\n\n越來越多孩子出現憂鬱、情緒障礙。我不認為那只是個人的脆弱，那是一整代人，被放進一個設計好的資訊環境裡，卻沒有人教他們怎麼辨別、怎麼出來。\n\n真正的感受，不是透過誰說了什麼、誰做了什麼來判斷；把別人的價值觀當成信念，失去判斷能力，不再探討、不再溝通，活在別人的框架，失去了思辨能力與感受力。\n\n那麼，我們能做什麼？\n\n我的答案很簡單，也很難——回到關係裡。\n\n不是沒收手機，不是立下規則就夠了。而是讓孩子在真實的生活裡，有值得記住的事、有願意說話的人、有讓他感受到自己存在的時刻。\n\n當一個孩子在現實世界裡有愛、有歸屬、有自我，他就不需要那麼深地躲進虛擬世界裡尋找。\n\n我們沒辦法替孩子過濾所有的訊息，但我們可以成為他在混亂世界裡，一個真實的錨。\n\n我們應該從身邊的環境，去感受、去經驗，活在真真實實的世界裡。\n\n美好的事物從來不在過去，也不在未來，是此時此刻的當下。",
+          },
+        ];
 
         const App = () => {
           const [view, setView] = useState('weekly');
@@ -57,18 +102,19 @@
 
           const [copied, setCopied] = useState('');
           const [saved, setSaved] = useState('');
+          const [expandedArticle, setExpandedArticle] = useState(null);
+          const [copiedArticle, setCopiedArticle] = useState('');
+          const [articlePublished, setArticlePublished] = useState(
+            () => loadFromStorage('cl3_article_published') || { 1: true, 2: true }
+          );
 
           useEffect(() => {
-            const t = setTimeout(() => {
-              saveToStorage(`cl3_newsletter_${activeDate}`, paragraphs);
-            }, 800);
+            const t = setTimeout(() => { saveToStorage(`cl3_newsletter_${activeDate}`, paragraphs); }, 800);
             return () => clearTimeout(t);
           }, [paragraphs, activeDate]);
 
           useEffect(() => {
-            const t = setTimeout(() => {
-              saveToStorage(`cl3_blog_${activeDate}`, blog);
-            }, 800);
+            const t = setTimeout(() => { saveToStorage(`cl3_blog_${activeDate}`, blog); }, 800);
             return () => clearTimeout(t);
           }, [blog, activeDate]);
 
@@ -116,9 +162,24 @@
             setSaved('ok');
             setTimeout(() => setSaved(''), 2000);
           };
+          const toggleArticlePublished = (id) => {
+            setArticlePublished(prev => {
+              const next = {...prev, [id]: !prev[id]};
+              saveToStorage('cl3_article_published', next);
+              return next;
+            });
+          };
+          const copyArticleContent = (article) => {
+            const txt = `${article.title}\n\n${article.content}`;
+            navigator.clipboard.writeText(txt).then(() => {
+              setCopiedArticle(article.id);
+              setTimeout(() => setCopiedArticle(''), 2500);
+            });
+          };
 
           const prefix = view === 'weekly' ? 'cl3_newsletter_' : 'cl3_blog_';
           const historyDates = getAllDates(prefix);
+          const sortedArticles = [...ARTICLES].sort((a, b) => b.date.localeCompare(a.date));
 
           const btnStyle = (active) => ({
             padding:'10px 0', background:'transparent', border:'none',
@@ -146,6 +207,7 @@
                     </div>
                   </div>
                   <div style={{display:'flex',gap:'32px',alignItems:'center'}}>
+                    <button onClick={()=>setView('articles')} style={btnStyle(view==='articles')}>文章庫</button>
                     <button onClick={()=>setView('weekly')} style={btnStyle(view==='weekly')}>本週任務</button>
                     <button onClick={()=>setView('blog')} style={btnStyle(view==='blog')}>部落格</button>
                     <button onClick={()=>setShowHistory(!showHistory)} style={{padding:'8px 16px',background:showHistory?'rgba(186,148,255,0.15)':'rgba(255,255,255,0.6)',border:'1px solid rgba(186,148,255,0.3)',borderRadius:'20px',color:'#8a7aa0',fontSize:'13px',cursor:'pointer'}}>📅 歷史紀錄</button>
@@ -154,7 +216,7 @@
               </div>
 
               {/* History Panel */}
-              {showHistory && (
+              {showHistory && view !== 'articles' && (
                 <div style={{background:'rgba(255,255,255,0.85)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(186,148,255,0.15)',padding:'20px 60px',zIndex:90}}>
                   <div style={{maxWidth:'1000px',margin:'0 auto'}}>
                     <div style={{fontSize:'14px',color:'#8a7aa0',marginBottom:'12px'}}>已儲存的日期（點擊載入）</div>
@@ -173,17 +235,77 @@
               )}
 
               {/* Date bar */}
-              <div style={{background:'rgba(255,255,255,0.4)',padding:'10px 60px',borderBottom:'1px solid rgba(186,148,255,0.08)',zIndex:80}}>
-                <div style={{maxWidth:'1000px',margin:'0 auto',display:'flex',alignItems:'center',gap:'12px'}}>
-                  <span style={{fontSize:'13px',color:'#8a7aa0'}}>📅 目前日期</span>
-                  <input type="date" value={activeDate} onChange={e=>loadDate(e.target.value)} style={{border:'1px solid rgba(186,148,255,0.3)',borderRadius:'12px',padding:'4px 12px',fontSize:'13px',color:'#5a4b6f',background:'rgba(255,255,255,0.8)',outline:'none'}}/>
-                  {saved==='ok' && <span style={{fontSize:'13px',color:'#16a34a'}}>✓ 已儲存</span>}
-                  <span style={{fontSize:'12px',color:'#b0a0c0',marginLeft:'auto'}}>自動儲存中…</span>
+              {view !== 'articles' && (
+                <div style={{background:'rgba(255,255,255,0.4)',padding:'10px 60px',borderBottom:'1px solid rgba(186,148,255,0.08)',zIndex:80}}>
+                  <div style={{maxWidth:'1000px',margin:'0 auto',display:'flex',alignItems:'center',gap:'12px'}}>
+                    <span style={{fontSize:'13px',color:'#8a7aa0'}}>📅 目前日期</span>
+                    <input type="date" value={activeDate} onChange={e=>loadDate(e.target.value)} style={{border:'1px solid rgba(186,148,255,0.3)',borderRadius:'12px',padding:'4px 12px',fontSize:'13px',color:'#5a4b6f',background:'rgba(255,255,255,0.8)',outline:'none'}}/>
+                    {saved==='ok' && <span style={{fontSize:'13px',color:'#16a34a'}}>✓ 已儲存</span>}
+                    <span style={{fontSize:'12px',color:'#b0a0c0',marginLeft:'auto'}}>自動儲存中…</span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div style={{padding:'60px',maxWidth:'1000px',margin:'0 auto',position:'relative',zIndex:1}}>
-                {view === 'weekly' ? (
+
+                {/* ── 文章庫 ── */}
+                {view === 'articles' ? (
+                  <div>
+                    <h1 style={{textAlign:'center',fontSize:'48px',marginBottom:'16px',background:'linear-gradient(135deg,#2d2438 0%,#5a4b6f 50%,#2d2438 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',fontWeight:700}}>文章庫</h1>
+                    <p style={{textAlign:'center',color:'#8a7aa0',marginBottom:'8px'}}>與 AI 確認後的文章 · 最新在上</p>
+                    <p style={{textAlign:'center',color:'#b0a0c0',fontSize:'13px',marginBottom:'48px'}}>點擊文章 → 複製全文 → 貼上方格子發布</p>
+
+                    <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
+                      {sortedArticles.map(article => {
+                        const isPublished = articlePublished[article.id] || false;
+                        const isExpanded = expandedArticle === article.id;
+                        const isCopied = copiedArticle === article.id;
+                        return (
+                          <div key={article.id} style={{background:'rgba(255,255,255,0.7)',backdropFilter:'blur(20px)',border:`2px solid ${isPublished?'rgba(74,222,128,0.25)':'rgba(186,148,255,0.2)'}`,borderRadius:'20px',padding:'28px',transition:'border 0.2s'}}>
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',cursor:'pointer'}} onClick={()=>setExpandedArticle(isExpanded ? null : article.id)}>
+                              <div style={{flex:1,marginRight:'20px'}}>
+                                <div style={{fontSize:'12px',color:'#8a7aa0',marginBottom:'8px',letterSpacing:'0.05em'}}>{article.date}</div>
+                                <div style={{fontSize:'17px',fontWeight:600,color:'#2d2438',lineHeight:1.5}}>{article.title}</div>
+                              </div>
+                              <div style={{display:'flex',gap:'10px',alignItems:'center',flexShrink:0}}>
+                                <span style={{padding:'5px 14px',background:isPublished?'rgba(74,222,128,0.12)':'rgba(186,148,255,0.1)',border:`1px solid ${isPublished?'rgba(74,222,128,0.35)':'rgba(186,148,255,0.25)'}`,borderRadius:'20px',fontSize:'12px',color:isPublished?'#16a34a':'#8a7aa0',fontWeight:600}}>
+                                  {isPublished ? '✓ 已發布' : '待發布'}
+                                </span>
+                                <span style={{color:'#b0a0c0',fontSize:'13px'}}>{isExpanded ? '▲' : '▼'}</span>
+                              </div>
+                            </div>
+
+                            {isExpanded && (
+                              <div style={{marginTop:'24px',borderTop:'1px solid rgba(186,148,255,0.12)',paddingTop:'24px'}}>
+                                <div style={{fontSize:'15px',lineHeight:2,color:'#3a2d4f',whiteSpace:'pre-line',background:'rgba(255,255,255,0.55)',borderRadius:'14px',padding:'24px',marginBottom:'20px',maxHeight:'420px',overflowY:'auto',border:'1px solid rgba(186,148,255,0.08)'}}>
+                                  {article.content}
+                                </div>
+                                <div style={{display:'flex',gap:'12px',justifyContent:'flex-end',alignItems:'center'}}>
+                                  <button onClick={()=>toggleArticlePublished(article.id)} style={{padding:'10px 22px',background:isPublished?'rgba(239,68,68,0.08)':'rgba(74,222,128,0.08)',border:`1px solid ${isPublished?'rgba(239,68,68,0.25)':'rgba(74,222,128,0.3)'}`,borderRadius:'20px',color:isPublished?'#dc2626':'#16a34a',fontSize:'13px',cursor:'pointer'}}>
+                                    {isPublished ? '取消發布標記' : '標記為已發布'}
+                                  </button>
+                                  <button onClick={()=>copyArticleContent(article)} style={{padding:'12px 36px',background:isCopied?'linear-gradient(135deg,#4ade80 0%,#22c55e 100%)':'linear-gradient(135deg,#ba94ff 0%,#8ab4f8 100%)',border:'none',borderRadius:'20px',color:'white',fontSize:'14px',fontWeight:700,cursor:'pointer'}}>
+                                    {isCopied ? '✓ 已複製！' : '📋 複製全文'}
+                                  </button>
+                                </div>
+                                {isCopied && (
+                                  <div style={{marginTop:'16px',padding:'14px 20px',background:'rgba(74,222,128,0.08)',border:'1px solid rgba(74,222,128,0.25)',borderRadius:'12px',color:'#16a34a',textAlign:'center',fontSize:'13px'}}>
+                                    已複製 → 前往方格子 → 新增文章 → 貼上 → 發布
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div style={{marginTop:'48px',padding:'20px',background:'rgba(138,180,248,0.05)',border:'1px solid rgba(138,180,248,0.12)',borderRadius:'14px',fontSize:'13px',color:'#8a9aaa',lineHeight:2,textAlign:'center'}}>
+                      每次與 AI 確認後的文章會新增在此。發布後請點「標記為已發布」。
+                    </div>
+                  </div>
+
+                ) : view === 'weekly' ? (
                   <div>
                     <h1 style={{textAlign:'center',fontSize:'48px',marginBottom:'20px',background:'linear-gradient(135deg,#2d2438 0%,#5a4b6f 50%,#2d2438 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',fontWeight:700}}>本週寫作任務</h1>
                     <p style={{textAlign:'center',color:'#8a7aa0',marginBottom:'60px'}}>每週二晚餐時光</p>
@@ -225,6 +347,7 @@
                     </div>
                     {copied==='newsletter' && <div style={{marginTop:'24px',padding:'20px',background:'rgba(74,222,128,0.1)',border:'2px solid rgba(74,222,128,0.3)',borderRadius:'16px',color:'#16a34a',textAlign:'center'}}>✓ 內容已複製，可前往方格子貼上發布</div>}
                   </div>
+
                 ):(
                   <div>
                     <h1 style={{textAlign:'center',fontSize:'48px',marginBottom:'20px',background:'linear-gradient(135deg,#2d2438 0%,#5a4b6f 50%,#2d2438 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',fontWeight:700}}>部落格文章</h1>
