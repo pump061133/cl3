@@ -81,6 +81,15 @@
           },
         ];
 
+        // 初始化：把 ARTICLES 同步到部落格歷史紀錄（只在無內容時寫入，不覆蓋已有資料）
+        ARTICLES.forEach(a => {
+          const key = 'cl3_blog_' + a.date;
+          if (!localStorage.getItem(key)) {
+            const words = a.content.trim().replace(/\s+/g, '').length;
+            localStorage.setItem(key, JSON.stringify({ title: a.title, content: a.content, words }));
+          }
+        });
+
         const App = () => {
           const [view, setView] = useState('weekly');
           const [activeDate, setActiveDate] = useState(TODAY);
