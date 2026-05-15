@@ -119,9 +119,11 @@
           const [saved, setSaved] = useState('');
           const [expandedArticle, setExpandedArticle] = useState(null);
           const [copiedArticle, setCopiedArticle] = useState('');
-          const [articlePublished, setArticlePublished] = useState(
-            () => loadFromStorage('cl3_article_published') || { 1: true, 2: true }
-          );
+          const [articlePublished, setArticlePublished] = useState(() => {
+            const stored = loadFromStorage('cl3_article_published') || {};
+            const defaults = { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 8: true, 9: true };
+            return { ...defaults, ...stored };
+          });
 
           useEffect(() => {
             const t = setTimeout(() => { saveToStorage(`cl3_newsletter_${activeDate}`, paragraphs); }, 800);
