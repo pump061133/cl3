@@ -18,7 +18,6 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script type="text/babel">
         const { useState, useEffect } = React;
-
         const TODAY = new Date().toISOString().slice(0, 10);
 
         const loadFromStorage = (key) => {
@@ -34,6 +33,27 @@
             if (k && k.startsWith(prefix)) dates.push(k.replace(prefix, ''));
           }
           return dates.sort((a, b) => b.localeCompare(a));
+        };
+
+        const SERIES_DEF = {
+          "母女之間": { total: 5, description: "從個人傷口走向理解、審視與和解" }
+        };
+
+        const ARTICLE_META = {
+          1:  { tags: ["教養", "孩子"] },
+          2:  { tags: ["自我成長", "關係"] },
+          3:  { tags: ["自我成長", "哲學"] },
+          4:  { tags: ["自我成長", "情緒"] },
+          5:  { tags: ["關係", "溝通"] },
+          6:  { tags: ["教養", "孩子"] },
+          7:  { tags: ["讀書心得"] },
+          8:  { tags: ["教養", "時事"] },
+          9:  { tags: ["讀書心得", "哲學"] },
+          10: { tags: ["家庭", "孩子"] },
+          11: { tags: ["哲學", "心靈"] },
+          12: { tags: ["讀書心得", "家庭"] },
+          13: { series: "母女之間", tags: ["母女系列", "哲學", "自我成長"] },
+          14: { series: "母女之間", tags: ["母女系列", "哲學"] },
         };
 
         const ARTICLES = [
@@ -123,7 +143,8 @@
           },
         ];
 
-        // 初始化：把 ARTICLES 同步到部落格歷史紀錄（只在無內容時寫入，不覆蓋已有資料）
+        const ARTICLES_FULL = ARTICLES.map(a => ({ ...a, ...(ARTICLE_META[a.id] || {}) }));
+
         ARTICLES.forEach(a => {
           const key = 'cl3_blog_' + a.date;
           if (!localStorage.getItem(key)) {
@@ -133,7 +154,7 @@
         });
 
         const App = () => {
-          const [view, setView] = useState('weekly');
+          const [view, setView] = useState('articles');
           const [activeDate, setActiveDate] = useState(TODAY);
           const [showHistory, setShowHistory] = useState(false);
 
@@ -155,11 +176,20 @@
           const [saved, setSaved] = useState('');
           const [expandedArticle, setExpandedArticle] = useState(null);
           const [copiedArticle, setCopiedArticle] = useState('');
+
           const [articlePublished, setArticlePublished] = useState(() => {
             const stored = loadFromStorage('cl3_article_published') || {};
             const defaults = { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 8: true, 9: true, 10: true, 11: false };
             return { ...defaults, ...stored };
           });
+
+          const [articleScheduledDates, setArticleScheduledDates] = useState(
+            () => loadFromStorage('cl3_scheduled_dates') || {}
+          );
+
+          const [statusFilter, setStatusFilter] = useState('all');
+          const [activeTag, setActiveTag] = useState(null);
+          const [viewMode, setViewMode] = useState('list');
 
           useEffect(() => {
             const t = setTimeout(() => { saveToStorage(`cl3_newsletter_${activeDate}`, paragraphs); }, 800);
@@ -174,29 +204,19 @@
           const loadDate = (date) => {
             setActiveDate(date);
             if (view === 'weekly') {
-              const saved = loadFromStorage(`cl3_newsletter_${date}`);
-              setParagraphs(saved || {
-                reflection: { title: '本週反思/心得', content: '', done: false },
-                recommendation: { title: '推薦/實踐小物', content: '', done: false },
-                learning: { title: '最近在學/在想', content: '', done: false }
-              });
+              const s = loadFromStorage(`cl3_newsletter_${date}`);
+              setParagraphs(s || { reflection: { title: '本週反思/心得', content: '', done: false }, recommendation: { title: '推薦/實踐小物', content: '', done: false }, learning: { title: '最近在學/在想', content: '', done: false } });
             } else {
-              const saved = loadFromStorage(`cl3_blog_${date}`);
-              setBlog(saved || { title: '', content: '', words: 0 });
+              const s = loadFromStorage(`cl3_blog_${date}`);
+              setBlog(s || { title: '', content: '', words: 0 });
             }
             setShowHistory(false);
           };
 
-          const updatePara = (key, val) => {
-            setParagraphs(p => ({...p, [key]: {...p[key], content: val, done: val.trim().length > 0}}));
-          };
-          const toggleDone = (key) => {
-            setParagraphs(p => ({...p, [key]: {...p[key], done: !p[key].done}}));
-          };
-          const getProgress = () => {
-            const done = Object.values(paragraphs).filter(p => p.done).length;
-            return (done / 3) * 100;
-          };
+          const updatePara = (key, val) => setParagraphs(p => ({...p, [key]: {...p[key], content: val, done: val.trim().length > 0}}));
+          const toggleDone = (key) => setParagraphs(p => ({...p, [key]: {...p[key], done: !p[key].done}}));
+          const getProgress = () => (Object.values(paragraphs).filter(p => p.done).length / 3) * 100;
+
           const copyNewsletter = () => {
             const txt = Object.entries(paragraphs).map(([k,p]) => `${p.title}\n\n${p.content}`).join('\n\n---\n\n');
             navigator.clipboard.writeText(txt).then(() => { setCopied('newsletter'); setTimeout(() => setCopied(''), 2000); });
@@ -215,6 +235,7 @@
             setSaved('ok');
             setTimeout(() => setSaved(''), 2000);
           };
+
           const toggleArticlePublished = (id) => {
             setArticlePublished(prev => {
               const next = {...prev, [id]: !prev[id]};
@@ -222,6 +243,16 @@
               return next;
             });
           };
+
+          const updateScheduledDate = (id, date) => {
+            setArticleScheduledDates(prev => {
+              const next = { ...prev };
+              if (date) next[id] = date; else delete next[id];
+              saveToStorage('cl3_scheduled_dates', next);
+              return next;
+            });
+          };
+
           const copyArticleContent = (article) => {
             const txt = `${article.title}\n\n${article.content}`;
             navigator.clipboard.writeText(txt).then(() => {
@@ -230,16 +261,143 @@
             });
           };
 
+          const getStatus = (id) => {
+            if (articlePublished[id]) return 'published';
+            if (articleScheduledDates[id]) return 'scheduled';
+            return 'draft';
+          };
+
+          const statusBadge = (id) => {
+            const s = getStatus(id);
+            if (s === 'published') return { label: '✓ 已發表', bg: 'rgba(74,222,128,0.12)', border: 'rgba(74,222,128,0.35)', color: '#16a34a' };
+            if (s === 'scheduled') return { label: '📅 已排程', bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.4)', color: '#d97706' };
+            return { label: '草稿', bg: 'rgba(186,148,255,0.1)', border: 'rgba(186,148,255,0.25)', color: '#8a7aa0' };
+          };
+
+          const allTags = [...new Set(ARTICLES_FULL.flatMap(a => a.tags || []))].sort();
+          const tagCounts = {};
+          ARTICLES_FULL.forEach(a => (a.tags || []).forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1; }));
+
+          const publishedCount = ARTICLES_FULL.filter(a => articlePublished[a.id]).length;
+          const scheduledCount = ARTICLES_FULL.filter(a => !articlePublished[a.id] && articleScheduledDates[a.id]).length;
+          const draftCount = ARTICLES_FULL.length - publishedCount - scheduledCount;
+
+          const countWords = str => str.replace(/\s+/g, '').length;
+          const totalWords = ARTICLES_FULL.reduce((s, a) => s + countWords(a.content), 0);
+          const publishedWords = ARTICLES_FULL.filter(a => articlePublished[a.id]).reduce((s, a) => s + countWords(a.content), 0);
+
+          const monthlyStats = {};
+          ARTICLES_FULL.filter(a => articlePublished[a.id]).forEach(a => {
+            const m = a.date.slice(0, 7);
+            monthlyStats[m] = (monthlyStats[m] || 0) + 1;
+          });
+          const monthKeys = Object.keys(monthlyStats).sort();
+          const maxMonthCount = Math.max(...Object.values(monthlyStats), 1);
+
+          const upcomingScheduled = ARTICLES_FULL
+            .filter(a => !articlePublished[a.id] && articleScheduledDates[a.id])
+            .sort((a, b) => articleScheduledDates[a.id].localeCompare(articleScheduledDates[b.id]));
+
+          const filteredArticles = ARTICLES_FULL
+            .filter(a => {
+              const s = getStatus(a.id);
+              if (statusFilter === 'published') return s === 'published';
+              if (statusFilter === 'scheduled') return s === 'scheduled';
+              if (statusFilter === 'draft') return s === 'draft';
+              return true;
+            })
+            .filter(a => !activeTag || (a.tags || []).includes(activeTag))
+            .sort((a, b) => {
+              const da = articleScheduledDates[a.id] || a.date;
+              const db = articleScheduledDates[b.id] || b.date;
+              return db.localeCompare(da);
+            });
+
           const prefix = view === 'weekly' ? 'cl3_newsletter_' : 'cl3_blog_';
           const historyDates = getAllDates(prefix);
-          const sortedArticles = [...ARTICLES].sort((a, b) => b.date.localeCompare(a.date));
 
           const btnStyle = (active) => ({
-            padding:'10px 0', background:'transparent', border:'none',
+            padding: '10px 0', background: 'transparent', border: 'none',
             borderBottom: active ? '2px solid #ba94ff' : '2px solid transparent',
             color: active ? '#ba94ff' : '#8a7aa0',
-            fontSize:'15px', fontWeight: active ? 600 : 400, cursor:'pointer'
+            fontSize: '15px', fontWeight: active ? 600 : 400, cursor: 'pointer'
           });
+
+          const filterBtnStyle = (active) => ({
+            padding: '8px 18px',
+            background: active ? 'linear-gradient(135deg,#ba94ff,#8ab4f8)' : 'rgba(255,255,255,0.6)',
+            border: active ? 'none' : '1px solid rgba(186,148,255,0.3)',
+            borderRadius: '20px',
+            color: active ? 'white' : '#8a7aa0',
+            fontSize: '13px', cursor: 'pointer', fontWeight: active ? 600 : 400
+          });
+
+          const tagBtnStyle = (active) => ({
+            padding: '5px 14px',
+            background: active ? 'linear-gradient(135deg,#ba94ff,#8ab4f8)' : 'rgba(255,255,255,0.6)',
+            border: active ? 'none' : '1px solid rgba(186,148,255,0.2)',
+            borderRadius: '20px',
+            color: active ? 'white' : '#8a7aa0',
+            fontSize: '12px', cursor: 'pointer'
+          });
+
+          const renderArticleCard = (article) => {
+            const badge = statusBadge(article.id);
+            const isExpanded = expandedArticle === article.id;
+            const isCopied = copiedArticle === article.id;
+            const isPublished = articlePublished[article.id] || false;
+            const scheduledDate = articleScheduledDates[article.id];
+            const cardBorder = isPublished ? 'rgba(74,222,128,0.25)' : scheduledDate ? 'rgba(251,191,36,0.3)' : 'rgba(186,148,255,0.2)';
+            return (
+              <div key={article.id} style={{background:'rgba(255,255,255,0.7)',backdropFilter:'blur(20px)',border:`2px solid ${cardBorder}`,borderRadius:'20px',padding:'24px',transition:'border 0.2s'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',cursor:'pointer'}} onClick={()=>setExpandedArticle(isExpanded?null:article.id)}>
+                  <div style={{flex:1,marginRight:'16px'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px',flexWrap:'wrap'}}>
+                      <span style={{fontSize:'12px',color:'#8a7aa0'}}>{article.date}</span>
+                      {scheduledDate && !isPublished && <span style={{fontSize:'12px',color:'#d97706',background:'rgba(251,191,36,0.1)',padding:'2px 10px',borderRadius:'20px',border:'1px solid rgba(251,191,36,0.3)'}}>→ {scheduledDate} 發表</span>}
+                      {(article.tags||[]).map(t => <span key={t} style={{fontSize:'11px',color:'#9a8ab0',background:'rgba(186,148,255,0.08)',padding:'2px 8px',borderRadius:'20px',border:'1px solid rgba(186,148,255,0.15)'}}>{t}</span>)}
+                    </div>
+                    <div style={{fontSize:'16px',fontWeight:600,color:'#2d2438',lineHeight:1.5}}>{article.title}</div>
+                  </div>
+                  <div style={{display:'flex',gap:'8px',alignItems:'center',flexShrink:0}}>
+                    <span style={{padding:'5px 12px',background:badge.bg,border:`1px solid ${badge.border}`,borderRadius:'20px',fontSize:'12px',color:badge.color,fontWeight:600,whiteSpace:'nowrap'}}>{badge.label}</span>
+                    <span style={{color:'#b0a0c0',fontSize:'13px'}}>{isExpanded?'▲':'▼'}</span>
+                  </div>
+                </div>
+
+                {isExpanded && (
+                  <div style={{marginTop:'20px',borderTop:'1px solid rgba(186,148,255,0.12)',paddingTop:'20px'}}>
+                    <div style={{fontSize:'15px',lineHeight:2,color:'#3a2d4f',whiteSpace:'pre-line',background:'rgba(255,255,255,0.55)',borderRadius:'14px',padding:'20px',marginBottom:'16px',maxHeight:'380px',overflowY:'auto',border:'1px solid rgba(186,148,255,0.08)'}}>
+                      {article.content}
+                    </div>
+
+                    <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'16px',flexWrap:'wrap',padding:'12px 16px',background:'rgba(251,191,36,0.05)',border:'1px solid rgba(251,191,36,0.15)',borderRadius:'12px'}}>
+                      <span style={{fontSize:'13px',color:'#8a7aa0',whiteSpace:'nowrap'}}>📅 預計發表日期</span>
+                      <input type="date" value={scheduledDate||''} onChange={e=>updateScheduledDate(article.id,e.target.value)}
+                        style={{border:'1px solid rgba(186,148,255,0.3)',borderRadius:'10px',padding:'5px 12px',fontSize:'13px',color:'#5a4b6f',background:'rgba(255,255,255,0.8)',outline:'none'}}/>
+                      {scheduledDate && (
+                        <button onClick={()=>updateScheduledDate(article.id,'')} style={{padding:'5px 12px',background:'transparent',border:'1px solid rgba(239,68,68,0.3)',borderRadius:'10px',color:'#dc2626',fontSize:'12px',cursor:'pointer'}}>清除</button>
+                      )}
+                    </div>
+
+                    <div style={{display:'flex',gap:'12px',justifyContent:'flex-end',alignItems:'center',flexWrap:'wrap'}}>
+                      <button onClick={()=>toggleArticlePublished(article.id)} style={{padding:'10px 20px',background:isPublished?'rgba(239,68,68,0.08)':'rgba(74,222,128,0.08)',border:`1px solid ${isPublished?'rgba(239,68,68,0.25)':'rgba(74,222,128,0.3)'}`,borderRadius:'20px',color:isPublished?'#dc2626':'#16a34a',fontSize:'13px',cursor:'pointer'}}>
+                        {isPublished?'取消發表標記':'標記為已發表'}
+                      </button>
+                      <button onClick={()=>copyArticleContent(article)} style={{padding:'12px 32px',background:isCopied?'linear-gradient(135deg,#4ade80,#22c55e)':'linear-gradient(135deg,#ba94ff,#8ab4f8)',border:'none',borderRadius:'20px',color:'white',fontSize:'14px',fontWeight:700,cursor:'pointer'}}>
+                        {isCopied?'✓ 已複製！':'📋 複製全文'}
+                      </button>
+                    </div>
+                    {isCopied && (
+                      <div style={{marginTop:'12px',padding:'12px 16px',background:'rgba(74,222,128,0.08)',border:'1px solid rgba(74,222,128,0.25)',borderRadius:'10px',color:'#16a34a',textAlign:'center',fontSize:'13px'}}>
+                        已複製 → 前往方格子 → 新增文章 → 貼上 → 發布
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          };
 
           return (
             <div style={{minHeight:'100vh',background:'linear-gradient(135deg,#f8f7ff 0%,#fff5f7 50%,#f0f9ff 100%)',fontFamily:"'Noto Sans TC',sans-serif",color:'#2d2438',position:'relative'}}>
@@ -248,7 +406,7 @@
 
               {/* Header */}
               <div style={{background:'rgba(255,255,255,0.6)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(186,148,255,0.1)',padding:'20px 60px',position:'sticky',top:0,zIndex:100}}>
-                <div style={{maxWidth:'1000px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <div style={{maxWidth:'1100px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                   <div style={{display:'flex',alignItems:'center',gap:'20px'}}>
                     <div style={{width:'60px',height:'60px',background:'linear-gradient(135deg,#ba94ff 0%,#8ab4f8 100%)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',position:'relative',boxShadow:'0 8px 32px rgba(186,148,255,0.4)'}}>
                       <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',width:'80%',height:'80%',background:'rgba(255,255,255,0.2)',borderRadius:'50%',filter:'blur(8px)'}}/>
@@ -259,19 +417,20 @@
                       <div style={{fontSize:'24px',fontWeight:700,background:'linear-gradient(135deg,#ba94ff 0%,#8ab4f8 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',letterSpacing:'0.03em'}}>哲思日常</div>
                     </div>
                   </div>
-                  <div style={{display:'flex',gap:'32px',alignItems:'center'}}>
+                  <div style={{display:'flex',gap:'28px',alignItems:'center'}}>
                     <button onClick={()=>setView('articles')} style={btnStyle(view==='articles')}>文章庫</button>
+                    <button onClick={()=>setView('dashboard')} style={btnStyle(view==='dashboard')}>📊 數據</button>
                     <button onClick={()=>setView('weekly')} style={btnStyle(view==='weekly')}>本週任務</button>
                     <button onClick={()=>setView('blog')} style={btnStyle(view==='blog')}>部落格</button>
-                    <button onClick={()=>setShowHistory(!showHistory)} style={{padding:'8px 16px',background:showHistory?'rgba(186,148,255,0.15)':'rgba(255,255,255,0.6)',border:'1px solid rgba(186,148,255,0.3)',borderRadius:'20px',color:'#8a7aa0',fontSize:'13px',cursor:'pointer'}}>📅 歷史紀錄</button>
+                    <button onClick={()=>setShowHistory(!showHistory)} style={{padding:'8px 16px',background:showHistory?'rgba(186,148,255,0.15)':'rgba(255,255,255,0.6)',border:'1px solid rgba(186,148,255,0.3)',borderRadius:'20px',color:'#8a7aa0',fontSize:'13px',cursor:'pointer'}}>📅 歷史</button>
                   </div>
                 </div>
               </div>
 
               {/* History Panel */}
-              {showHistory && view !== 'articles' && (
+              {showHistory && view !== 'articles' && view !== 'dashboard' && (
                 <div style={{background:'rgba(255,255,255,0.85)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(186,148,255,0.15)',padding:'20px 60px',zIndex:90}}>
-                  <div style={{maxWidth:'1000px',margin:'0 auto'}}>
+                  <div style={{maxWidth:'1100px',margin:'0 auto'}}>
                     <div style={{fontSize:'14px',color:'#8a7aa0',marginBottom:'12px'}}>已儲存的日期（點擊載入）</div>
                     {historyDates.length === 0
                       ? <div style={{fontSize:'14px',color:'#bbb'}}>還沒有儲存紀錄</div>
@@ -288,9 +447,9 @@
               )}
 
               {/* Date bar */}
-              {view !== 'articles' && (
+              {view !== 'articles' && view !== 'dashboard' && (
                 <div style={{background:'rgba(255,255,255,0.4)',padding:'10px 60px',borderBottom:'1px solid rgba(186,148,255,0.08)',zIndex:80}}>
-                  <div style={{maxWidth:'1000px',margin:'0 auto',display:'flex',alignItems:'center',gap:'12px'}}>
+                  <div style={{maxWidth:'1100px',margin:'0 auto',display:'flex',alignItems:'center',gap:'12px'}}>
                     <span style={{fontSize:'13px',color:'#8a7aa0'}}>📅 目前日期</span>
                     <input type="date" value={activeDate} onChange={e=>loadDate(e.target.value)} style={{border:'1px solid rgba(186,148,255,0.3)',borderRadius:'12px',padding:'4px 12px',fontSize:'13px',color:'#5a4b6f',background:'rgba(255,255,255,0.8)',outline:'none'}}/>
                     {saved==='ok' && <span style={{fontSize:'13px',color:'#16a34a'}}>✓ 已儲存</span>}
@@ -299,68 +458,197 @@
                 </div>
               )}
 
-              <div style={{padding:'60px',maxWidth:'1000px',margin:'0 auto',position:'relative',zIndex:1}}>
+              <div style={{padding:'48px 60px',maxWidth:'1100px',margin:'0 auto',position:'relative',zIndex:1}}>
 
                 {/* ── 文章庫 ── */}
                 {view === 'articles' ? (
                   <div>
-                    <h1 style={{textAlign:'center',fontSize:'48px',marginBottom:'16px',background:'linear-gradient(135deg,#2d2438 0%,#5a4b6f 50%,#2d2438 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',fontWeight:700}}>文章庫</h1>
-                    <p style={{textAlign:'center',color:'#8a7aa0',marginBottom:'8px'}}>與 AI 確認後的文章 · 最新在上</p>
-                    <p style={{textAlign:'center',color:'#b0a0c0',fontSize:'13px',marginBottom:'48px'}}>點擊文章 → 複製全文 → 貼上方格子發布</p>
+                    <h1 style={{textAlign:'center',fontSize:'44px',marginBottom:'12px',background:'linear-gradient(135deg,#2d2438 0%,#5a4b6f 50%,#2d2438 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',fontWeight:700}}>文章庫</h1>
+                    <p style={{textAlign:'center',color:'#8a7aa0',marginBottom:'4px',fontSize:'14px'}}>寫好在這裡累積，排程後複製發表到方格子</p>
+                    <p style={{textAlign:'center',color:'#b0a0c0',fontSize:'13px',marginBottom:'36px'}}>共 {ARTICLES_FULL.length} 篇 · 已發表 {publishedCount} · 排程中 {scheduledCount} · 草稿 {draftCount}</p>
 
-                    <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
-                      {sortedArticles.map(article => {
-                        const isPublished = articlePublished[article.id] || false;
-                        const isExpanded = expandedArticle === article.id;
-                        const isCopied = copiedArticle === article.id;
-                        return (
-                          <div key={article.id} style={{background:'rgba(255,255,255,0.7)',backdropFilter:'blur(20px)',border:`2px solid ${isPublished?'rgba(74,222,128,0.25)':'rgba(186,148,255,0.2)'}`,borderRadius:'20px',padding:'28px',transition:'border 0.2s'}}>
-                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',cursor:'pointer'}} onClick={()=>setExpandedArticle(isExpanded ? null : article.id)}>
-                              <div style={{flex:1,marginRight:'20px'}}>
-                                <div style={{fontSize:'12px',color:'#8a7aa0',marginBottom:'8px',letterSpacing:'0.05em'}}>{article.date}</div>
-                                <div style={{fontSize:'17px',fontWeight:600,color:'#2d2438',lineHeight:1.5}}>{article.title}</div>
-                              </div>
-                              <div style={{display:'flex',gap:'10px',alignItems:'center',flexShrink:0}}>
-                                <span style={{padding:'5px 14px',background:isPublished?'rgba(74,222,128,0.12)':'rgba(186,148,255,0.1)',border:`1px solid ${isPublished?'rgba(74,222,128,0.35)':'rgba(186,148,255,0.25)'}`,borderRadius:'20px',fontSize:'12px',color:isPublished?'#16a34a':'#8a7aa0',fontWeight:600}}>
-                                  {isPublished ? '✓ 已發布' : '待發布'}
-                                </span>
-                                <span style={{color:'#b0a0c0',fontSize:'13px'}}>{isExpanded ? '▲' : '▼'}</span>
-                              </div>
-                            </div>
-
-                            {isExpanded && (
-                              <div style={{marginTop:'24px',borderTop:'1px solid rgba(186,148,255,0.12)',paddingTop:'24px'}}>
-                                <div style={{fontSize:'15px',lineHeight:2,color:'#3a2d4f',whiteSpace:'pre-line',background:'rgba(255,255,255,0.55)',borderRadius:'14px',padding:'24px',marginBottom:'20px',maxHeight:'420px',overflowY:'auto',border:'1px solid rgba(186,148,255,0.08)'}}>
-                                  {article.content}
-                                </div>
-                                <div style={{display:'flex',gap:'12px',justifyContent:'flex-end',alignItems:'center'}}>
-                                  <button onClick={()=>toggleArticlePublished(article.id)} style={{padding:'10px 22px',background:isPublished?'rgba(239,68,68,0.08)':'rgba(74,222,128,0.08)',border:`1px solid ${isPublished?'rgba(239,68,68,0.25)':'rgba(74,222,128,0.3)'}`,borderRadius:'20px',color:isPublished?'#dc2626':'#16a34a',fontSize:'13px',cursor:'pointer'}}>
-                                    {isPublished ? '取消發布標記' : '標記為已發布'}
-                                  </button>
-                                  <button onClick={()=>copyArticleContent(article)} style={{padding:'12px 36px',background:isCopied?'linear-gradient(135deg,#4ade80 0%,#22c55e 100%)':'linear-gradient(135deg,#ba94ff 0%,#8ab4f8 100%)',border:'none',borderRadius:'20px',color:'white',fontSize:'14px',fontWeight:700,cursor:'pointer'}}>
-                                    {isCopied ? '✓ 已複製！' : '📋 複製全文'}
-                                  </button>
-                                </div>
-                                {isCopied && (
-                                  <div style={{marginTop:'16px',padding:'14px 20px',background:'rgba(74,222,128,0.08)',border:'1px solid rgba(74,222,128,0.25)',borderRadius:'12px',color:'#16a34a',textAlign:'center',fontSize:'13px'}}>
-                                    已複製 → 前往方格子 → 新增文章 → 貼上 → 發布
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                    {/* Status filter + view toggle */}
+                    <div style={{display:'flex',gap:'8px',marginBottom:'16px',flexWrap:'wrap',alignItems:'center'}}>
+                      <button onClick={()=>setStatusFilter('all')} style={filterBtnStyle(statusFilter==='all')}>全部 ({ARTICLES_FULL.length})</button>
+                      <button onClick={()=>setStatusFilter('draft')} style={filterBtnStyle(statusFilter==='draft')}>草稿 ({draftCount})</button>
+                      <button onClick={()=>setStatusFilter('scheduled')} style={filterBtnStyle(statusFilter==='scheduled')}>已排程 ({scheduledCount})</button>
+                      <button onClick={()=>setStatusFilter('published')} style={filterBtnStyle(statusFilter==='published')}>已發表 ({publishedCount})</button>
+                      <button onClick={()=>setViewMode(m=>m==='list'?'series':'list')} style={{marginLeft:'auto',padding:'8px 18px',background:viewMode==='series'?'rgba(186,148,255,0.15)':'rgba(255,255,255,0.6)',border:'1px solid rgba(186,148,255,0.3)',borderRadius:'20px',color:'#8a7aa0',fontSize:'13px',cursor:'pointer'}}>
+                        {viewMode==='series'?'📋 全部列表':'📚 依系列'}
+                      </button>
                     </div>
 
-                    <div style={{marginTop:'48px',padding:'20px',background:'rgba(138,180,248,0.05)',border:'1px solid rgba(138,180,248,0.12)',borderRadius:'14px',fontSize:'13px',color:'#8a9aaa',lineHeight:2,textAlign:'center'}}>
-                      每次與 AI 確認後的文章會新增在此。發布後請點「標記為已發布」。
+                    {/* Tag filter */}
+                    <div style={{display:'flex',flexWrap:'wrap',gap:'8px',marginBottom:'32px',padding:'16px',background:'rgba(255,255,255,0.4)',borderRadius:'16px',border:'1px solid rgba(186,148,255,0.1)'}}>
+                      <button onClick={()=>setActiveTag(null)} style={tagBtnStyle(!activeTag)}>全部標籤</button>
+                      {allTags.map(tag => (
+                        <button key={tag} onClick={()=>setActiveTag(activeTag===tag?null:tag)} style={tagBtnStyle(activeTag===tag)}>{tag}{tagCounts[tag]>1?` (${tagCounts[tag]})`:''}</button>
+                      ))}
+                    </div>
+
+                    {/* Articles */}
+                    {viewMode === 'series' ? (
+                      <div>
+                        {Object.keys(SERIES_DEF).map(seriesName => {
+                          const def = SERIES_DEF[seriesName];
+                          const seriesArticles = filteredArticles.filter(a => a.series === seriesName);
+                          const writtenCount = ARTICLES_FULL.filter(a => a.series === seriesName).length;
+                          const pubCount = ARTICLES_FULL.filter(a => a.series === seriesName && articlePublished[a.id]).length;
+                          return (
+                            <div key={seriesName} style={{marginBottom:'32px'}}>
+                              <div style={{background:'rgba(186,148,255,0.08)',border:'1px solid rgba(186,148,255,0.2)',borderRadius:'16px',padding:'20px 24px',marginBottom:'12px'}}>
+                                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'12px'}}>
+                                  <div>
+                                    <div style={{fontSize:'18px',fontWeight:700,color:'#5a4b6f'}}>《{seriesName}》</div>
+                                    <div style={{fontSize:'13px',color:'#8a7aa0',marginTop:'4px'}}>{def.description}</div>
+                                  </div>
+                                  <div style={{textAlign:'right',fontSize:'13px',color:'#8a7aa0',lineHeight:1.8}}>
+                                    <div>已寫 {writtenCount} / {def.total} 篇</div>
+                                    <div>已發表 {pubCount} 篇</div>
+                                  </div>
+                                </div>
+                                <div style={{width:'100%',height:'6px',background:'rgba(186,148,255,0.15)',borderRadius:'6px',overflow:'hidden'}}>
+                                  <div style={{width:`${(writtenCount/def.total)*100}%`,height:'100%',background:'linear-gradient(90deg,#ba94ff,#8ab4f8)',borderRadius:'6px',transition:'width 0.6s'}}/>
+                                </div>
+                              </div>
+                              {seriesArticles.length > 0
+                                ? <div style={{display:'flex',flexDirection:'column',gap:'12px',paddingLeft:'16px',borderLeft:'3px solid rgba(186,148,255,0.2)'}}>{seriesArticles.map(a => renderArticleCard(a))}</div>
+                                : <div style={{paddingLeft:'16px',color:'#b0a0c0',fontSize:'13px',paddingBottom:'8px'}}>此篩選條件下無符合文章</div>
+                              }
+                            </div>
+                          );
+                        })}
+                        {filteredArticles.filter(a => !a.series).length > 0 && (
+                          <div>
+                            <div style={{fontSize:'15px',fontWeight:600,color:'#8a7aa0',marginBottom:'12px',paddingLeft:'4px'}}>其他文章</div>
+                            <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>{filteredArticles.filter(a => !a.series).map(a => renderArticleCard(a))}</div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
+                        {filteredArticles.length > 0
+                          ? filteredArticles.map(a => renderArticleCard(a))
+                          : <div style={{textAlign:'center',color:'#b0a0c0',padding:'48px',fontSize:'15px'}}>此篩選條件下沒有文章</div>
+                        }
+                      </div>
+                    )}
+                  </div>
+
+                ) : view === 'dashboard' ? (
+                  /* ── 數據儀表板 ── */
+                  <div>
+                    <h1 style={{textAlign:'center',fontSize:'44px',marginBottom:'12px',background:'linear-gradient(135deg,#2d2438 0%,#5a4b6f 50%,#2d2438 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',fontWeight:700}}>我的數據</h1>
+                    <p style={{textAlign:'center',color:'#8a7aa0',marginBottom:'48px',fontSize:'14px'}}>寫作歷程一覽</p>
+
+                    {/* Summary cards */}
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'16px',marginBottom:'32px'}}>
+                      {[
+                        {label:'總文章數',value:ARTICLES_FULL.length,unit:'篇',color:'#ba94ff',bg:'rgba(186,148,255,0.08)'},
+                        {label:'已發表',value:publishedCount,unit:'篇',color:'#16a34a',bg:'rgba(74,222,128,0.08)'},
+                        {label:'排程中',value:scheduledCount,unit:'篇',color:'#d97706',bg:'rgba(251,191,36,0.08)'},
+                        {label:'草稿',value:draftCount,unit:'篇',color:'#8a7aa0',bg:'rgba(186,148,255,0.05)'},
+                      ].map(card => (
+                        <div key={card.label} style={{background:card.bg,border:`1px solid ${card.color}30`,borderRadius:'16px',padding:'20px',textAlign:'center'}}>
+                          <div style={{fontSize:'36px',fontWeight:700,color:card.color,lineHeight:1}}>{card.value}</div>
+                          <div style={{fontSize:'12px',color:card.color,opacity:0.7,marginTop:'2px'}}>{card.unit}</div>
+                          <div style={{fontSize:'13px',color:'#8a7aa0',marginTop:'8px'}}>{card.label}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Word count + Series progress */}
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'32px'}}>
+                      <div style={{background:'rgba(255,255,255,0.6)',backdropFilter:'blur(20px)',border:'1px solid rgba(186,148,255,0.15)',borderRadius:'16px',padding:'24px'}}>
+                        <div style={{fontSize:'15px',fontWeight:600,color:'#5a4b6f',marginBottom:'20px'}}>字數統計</div>
+                        {[
+                          {label:'總字數',value:totalWords.toLocaleString(),color:'#ba94ff'},
+                          {label:'已發表字數',value:publishedWords.toLocaleString(),color:'#16a34a'},
+                          {label:'待發表字數',value:(totalWords-publishedWords).toLocaleString(),color:'#d97706'},
+                        ].map(row => (
+                          <div key={row.label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid rgba(186,148,255,0.08)'}}>
+                            <span style={{fontSize:'14px',color:'#8a7aa0'}}>{row.label}</span>
+                            <span style={{fontSize:'20px',fontWeight:700,color:row.color}}>{row.value}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div style={{background:'rgba(255,255,255,0.6)',backdropFilter:'blur(20px)',border:'1px solid rgba(186,148,255,0.15)',borderRadius:'16px',padding:'24px'}}>
+                        <div style={{fontSize:'15px',fontWeight:600,color:'#5a4b6f',marginBottom:'20px'}}>系列進度</div>
+                        {Object.keys(SERIES_DEF).map(seriesName => {
+                          const def = SERIES_DEF[seriesName];
+                          const written = ARTICLES_FULL.filter(a => a.series === seriesName).length;
+                          const pub = ARTICLES_FULL.filter(a => a.series === seriesName && articlePublished[a.id]).length;
+                          return (
+                            <div key={seriesName} style={{marginBottom:'16px'}}>
+                              <div style={{display:'flex',justifyContent:'space-between',marginBottom:'8px'}}>
+                                <span style={{fontSize:'14px',color:'#5a4b6f',fontWeight:600}}>《{seriesName}》</span>
+                                <span style={{fontSize:'13px',color:'#8a7aa0'}}>已寫 {written}/{def.total} · 已發表 {pub}</span>
+                              </div>
+                              <div style={{width:'100%',height:'8px',background:'rgba(186,148,255,0.12)',borderRadius:'8px',overflow:'hidden',marginBottom:'4px'}}>
+                                <div style={{width:`${(written/def.total)*100}%`,height:'100%',background:'linear-gradient(90deg,#ba94ff,#8ab4f8)',borderRadius:'8px',transition:'width 0.6s'}}/>
+                              </div>
+                              <div style={{fontSize:'12px',color:'#b0a0c0'}}>{def.description}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Monthly chart */}
+                    <div style={{background:'rgba(255,255,255,0.6)',backdropFilter:'blur(20px)',border:'1px solid rgba(186,148,255,0.15)',borderRadius:'16px',padding:'24px',marginBottom:'32px'}}>
+                      <div style={{fontSize:'15px',fontWeight:600,color:'#5a4b6f',marginBottom:'24px'}}>每月發表篇數</div>
+                      {monthKeys.length > 0 ? (
+                        <div style={{display:'flex',alignItems:'flex-end',gap:'20px',height:'120px',paddingBottom:'4px'}}>
+                          {monthKeys.map(month => (
+                            <div key={month} style={{display:'flex',flexDirection:'column',alignItems:'center',flex:1,height:'100%',justifyContent:'flex-end'}}>
+                              <div style={{fontSize:'13px',fontWeight:700,color:'white',marginBottom:'4px'}}>{monthlyStats[month]}</div>
+                              <div style={{width:'100%',height:`${(monthlyStats[month]/maxMonthCount)*100}%`,background:'linear-gradient(180deg,#ba94ff,#8ab4f8)',borderRadius:'8px 8px 0 0',minHeight:'20px'}}/>
+                              <div style={{fontSize:'12px',color:'#8a7aa0',marginTop:'8px'}}>{month.slice(0,4)}年{parseInt(month.slice(5))}月</div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{textAlign:'center',color:'#b0a0c0',padding:'32px',fontSize:'14px'}}>還沒有已發表的文章</div>
+                      )}
+                    </div>
+
+                    {/* Upcoming scheduled */}
+                    <div style={{background:'rgba(255,255,255,0.6)',backdropFilter:'blur(20px)',border:'1px solid rgba(251,191,36,0.2)',borderRadius:'16px',padding:'24px',marginBottom:'32px'}}>
+                      <div style={{fontSize:'15px',fontWeight:600,color:'#5a4b6f',marginBottom:'16px'}}>📅 發表行事曆</div>
+                      {upcomingScheduled.length > 0 ? (
+                        <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                          {upcomingScheduled.map(a => (
+                            <div key={a.id} style={{display:'flex',alignItems:'center',gap:'16px',padding:'12px 16px',background:'rgba(251,191,36,0.05)',border:'1px solid rgba(251,191,36,0.2)',borderRadius:'12px'}}>
+                              <div style={{fontSize:'14px',fontWeight:700,color:'#d97706',whiteSpace:'nowrap',minWidth:'90px'}}>{articleScheduledDates[a.id]}</div>
+                              <div style={{fontSize:'14px',color:'#3a2d4f',flex:1}}>{a.title}</div>
+                              {(a.tags||[]).slice(0,2).map(t => <span key={t} style={{fontSize:'11px',color:'#9a8ab0',background:'rgba(186,148,255,0.08)',padding:'2px 8px',borderRadius:'20px',border:'1px solid rgba(186,148,255,0.15)',whiteSpace:'nowrap'}}>{t}</span>)}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{textAlign:'center',color:'#b0a0c0',padding:'24px',fontSize:'14px'}}>還沒有設定排程的文章<br/><span style={{fontSize:'12px'}}>在文章庫展開文章後可設定預計發表日期</span></div>
+                      )}
+                    </div>
+
+                    {/* Tag distribution */}
+                    <div style={{background:'rgba(255,255,255,0.6)',backdropFilter:'blur(20px)',border:'1px solid rgba(186,148,255,0.15)',borderRadius:'16px',padding:'24px'}}>
+                      <div style={{fontSize:'15px',fontWeight:600,color:'#5a4b6f',marginBottom:'16px'}}>標籤分布</div>
+                      <div style={{display:'flex',flexWrap:'wrap',gap:'10px'}}>
+                        {Object.entries(tagCounts).sort((a,b)=>b[1]-a[1]).map(([tag,count]) => (
+                          <div key={tag} style={{display:'flex',alignItems:'center',gap:'6px',padding:'6px 16px',background:'rgba(186,148,255,0.08)',border:'1px solid rgba(186,148,255,0.2)',borderRadius:'20px'}}>
+                            <span style={{fontSize:'13px',color:'#5a4b6f'}}>{tag}</span>
+                            <span style={{fontSize:'12px',color:'#ba94ff',fontWeight:700}}>{count}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
                 ) : view === 'weekly' ? (
+                  /* ── 本週任務 ── */
                   <div>
-                    <h1 style={{textAlign:'center',fontSize:'48px',marginBottom:'20px',background:'linear-gradient(135deg,#2d2438 0%,#5a4b6f 50%,#2d2438 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',fontWeight:700}}>本週寫作任務</h1>
+                    <h1 style={{textAlign:'center',fontSize:'44px',marginBottom:'20px',background:'linear-gradient(135deg,#2d2438 0%,#5a4b6f 50%,#2d2438 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',fontWeight:700}}>本週寫作任務</h1>
                     <p style={{textAlign:'center',color:'#8a7aa0',marginBottom:'60px'}}>每週二晚餐時光</p>
 
                     <div style={{background:'rgba(255,255,255,0.6)',backdropFilter:'blur(20px)',borderRadius:'24px',padding:'32px',marginBottom:'40px',border:'1px solid rgba(186,148,255,0.1)'}}>
@@ -401,9 +689,10 @@
                     {copied==='newsletter' && <div style={{marginTop:'24px',padding:'20px',background:'rgba(74,222,128,0.1)',border:'2px solid rgba(74,222,128,0.3)',borderRadius:'16px',color:'#16a34a',textAlign:'center'}}>✓ 內容已複製，可前往方格子貼上發布</div>}
                   </div>
 
-                ):(
+                ) : (
+                  /* ── 部落格 ── */
                   <div>
-                    <h1 style={{textAlign:'center',fontSize:'48px',marginBottom:'20px',background:'linear-gradient(135deg,#2d2438 0%,#5a4b6f 50%,#2d2438 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',fontWeight:700}}>部落格文章</h1>
+                    <h1 style={{textAlign:'center',fontSize:'44px',marginBottom:'20px',background:'linear-gradient(135deg,#2d2438 0%,#5a4b6f 50%,#2d2438 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',fontWeight:700}}>部落格文章</h1>
                     <p style={{textAlign:'center',color:'#8a7aa0',marginBottom:'60px'}}>一週一篇 · 方格子 vocus.cc</p>
                     <input type="text" value={blog.title} onChange={(e)=>setBlog(p=>({...p,title:e.target.value}))} placeholder="輸入標題..." style={{width:'100%',background:'rgba(255,255,255,0.6)',border:'2px solid rgba(186,148,255,0.15)',borderRadius:'20px',padding:'20px 28px',fontSize:'24px',fontWeight:700,marginBottom:'24px',outline:'none'}}/>
                     <textarea value={blog.content} onChange={(e)=>updateBlog(e.target.value)} placeholder="開始書寫..." style={{width:'100%',minHeight:'400px',background:'rgba(255,255,255,0.6)',border:'2px solid rgba(186,148,255,0.15)',borderRadius:'20px',padding:'28px',fontSize:'16px',lineHeight:2,resize:'vertical',outline:'none',marginBottom:'24px'}}/>
@@ -419,6 +708,7 @@
             </div>
           );
         };
+
         ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
     </script>
 </body>
